@@ -2,12 +2,9 @@ import Book from "../models/Book.js";
 
 
 export const addBook = async (req, res) => {
-  console.log("📌 addBook API triggered");
 
   try {
-    console.log("📝 Request Body:", req.body);
-    console.log("🖼️ Uploaded File:", req.file);
-    console.log("👤 Authenticated User:", req.user);
+
 
     const { title, author, condition } = req.body;
 
@@ -17,7 +14,6 @@ export const addBook = async (req, res) => {
     }
 
     const image = req.file ? `/uploads/${req.file.filename}` : null;
-    console.log("✅ Image Path:", image);
 
     const newBook = new Book({
       title,
@@ -27,11 +23,9 @@ export const addBook = async (req, res) => {
       owner: req.user?.id || "No user found",
     });
 
-    console.log("📦 New Book Object (before save):", newBook);
 
     await newBook.save();
 
-    console.log("✅ Book saved successfully:", newBook);
     return res.status(201).json(newBook);
 
   } catch (err) {
@@ -42,10 +36,9 @@ export const addBook = async (req, res) => {
 
 export const getAllBooks = async (req, res) => {
   try {
-    // exclude books owned by the logged-in user
     const books = await Book.find({ owner: { $ne: req.user.id } })
       .populate("owner", "name email")
-      .sort({ createdAt: -1 }); // optional: show latest first
+      .sort({ createdAt: -1 });
 
     res.status(200).json(books);
   } catch (err) {

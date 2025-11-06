@@ -1,7 +1,6 @@
 import Request from "../models/Request.js";
 import Book from "../models/Book.js";
 
-// Create a request for a book
 export const createRequest = async (req, res) => {
   try {
     const { bookId } = req.body;
@@ -9,12 +8,10 @@ export const createRequest = async (req, res) => {
     const book = await Book.findById(bookId);
     if (!book) return res.status(404).json({ message: "Book not found" });
 
-    // Prevent self-request
     if (book.owner.toString() === req.user.id) {
       return res.status(400).json({ message: "You cannot request your own book" });
     }
 
-    // Prevent duplicate request
     const existing = await Request.findOne({
       book: bookId,
       requester: req.user.id,
@@ -36,7 +33,6 @@ export const createRequest = async (req, res) => {
   }
 };
 
-// Get all requests for logged-in user (sent by him)
 export const getMyRequests = async (req, res) => {
   try {
     const requests = await Request.find({ requester: req.user.id })
@@ -48,7 +44,6 @@ export const getMyRequests = async (req, res) => {
   }
 };
 
-// Get all requests for books owned by logged-in user
 export const getReceivedRequests = async (req, res) => {
   try {
     const requests = await Request.find({ owner: req.user.id })
@@ -60,11 +55,10 @@ export const getReceivedRequests = async (req, res) => {
   }
 };
 
-// Update request status (only owner can accept/decline)
 export const updateRequestStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body; // "accepted" or "declined"
+    const { status } = req.body;
 
     const request = await Request.findById(id)
       .populate("book")
@@ -75,7 +69,6 @@ export const updateRequestStatus = async (req, res) => {
       return res.status(404).json({ message: "Request not found" });
     }
 
-    // Only the book owner can update the request
     if (request.owner._id.toString() !== req.user.id) {
       return res.status(403).json({ message: "Not authorized" });
     }
@@ -87,12 +80,11 @@ export const updateRequestStatus = async (req, res) => {
     request.status = status;
     await request.save();
 
-    // ✅ If accepted → transfer book ownership
     if (status === "Accepted") {
       const book = await Book.findById(request.book._id);
 
       if (book) {
-        book.owner = request.requester._id; // Transfer ownership
+        book.owner = request.requester._id;
         await book.save();
       }
     }

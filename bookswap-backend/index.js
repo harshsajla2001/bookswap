@@ -26,7 +26,6 @@ app.use(cors());
 const PORT = process.env.PORT || 3001;
 
 app.get("/", (req, res) => {
-    console.log("Received a GET request on /");
     res.send("Hello World!");
 });
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
