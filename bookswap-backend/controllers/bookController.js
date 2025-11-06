@@ -1,22 +1,42 @@
 import Book from "../models/Book.js";
 
+
 export const addBook = async (req, res) => {
+  console.log("📌 addBook API triggered");
+
   try {
+    console.log("📝 Request Body:", req.body);
+    console.log("🖼️ Uploaded File:", req.file);
+    console.log("👤 Authenticated User:", req.user);
+
     const { title, author, condition } = req.body;
+
+    if (!title || !author || !condition) {
+      console.warn("⚠️ Missing required fields!");
+      return res.status(400).json({ error: "All fields are required" });
+    }
+
     const image = req.file ? `/uploads/${req.file.filename}` : null;
+    console.log("✅ Image Path:", image);
 
     const newBook = new Book({
       title,
       author,
       condition,
       image,
-      owner: req.user.id,
+      owner: req.user?.id || "No user found",
     });
 
+    console.log("📦 New Book Object (before save):", newBook);
+
     await newBook.save();
-    res.status(201).json(newBook);
+
+    console.log("✅ Book saved successfully:", newBook);
+    return res.status(201).json(newBook);
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("❌ Error in addBook:", err);
+    return res.status(500).json({ error: err.message });
   }
 };
 
@@ -30,7 +50,7 @@ export const getAllBooks = async (req, res) => {
     res.status(200).json(books);
   } catch (err) {
     res.status(500).json({ error: err.message });
-  } 
+  }
 };
 
 

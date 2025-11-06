@@ -64,12 +64,19 @@ export const getReceivedRequests = async (req, res) => {
 export const updateRequestStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body; // "Accepted" or "Declined"
+    const { status } = req.body; // "accepted" or "declined"
 
-    const request = await Request.findById(id);
-    if (!request) return res.status(404).json({ message: "Request not found" });
+    const request = await Request.findById(id)
+      .populate("book")
+      .populate("requester")
+      .populate("owner");
 
-    if (request.owner.toString() !== req.user.id) {
+    if (!request) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+
+    // Only the book owner can update the request
+    if (request.owner._id.toString() !== req.user.id) {
       return res.status(403).json({ message: "Not authorized" });
     }
 
@@ -80,8 +87,23 @@ export const updateRequestStatus = async (req, res) => {
     request.status = status;
     await request.save();
 
-    res.status(200).json({ message: `Request ${status.toLowerCase()} successfully`, request });
+    // ✅ If accepted → transfer book ownership
+    if (status === "Accepted") {
+      const book = await Book.findById(request.book._id);
+
+      if (book) {
+        book.owner = request.requester._id; // Transfer ownership
+        await book.save();
+      }
+    }
+
+    res.status(200).json({
+      message: `Request ${status} successfully`,
+      request,
+    });
+
   } catch (err) {
+    console.error("Error updating request:", err);
     res.status(500).json({ error: err.message });
   }
 };

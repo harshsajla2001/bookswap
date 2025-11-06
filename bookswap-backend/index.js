@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import mongoose from 'mongoose';
+import path from "path";
 import dotenv from 'dotenv';
 import helmet from 'helmet';
 import connetToDatabase from './config/db.js';
@@ -28,6 +29,8 @@ app.get("/", (req, res) => {
     console.log("Received a GET request on /");
     res.send("Hello World!");
 });
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+
 
 app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
