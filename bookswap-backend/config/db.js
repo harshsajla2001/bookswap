@@ -29,7 +29,14 @@ async function connetToDatabase() {
         };
 
 
-        mongoose.connect(MONGODB_URI, opts).then(() => mongoose.connection);
+        console.log("Mongo URI exists:", !!process.env.MONGO_URI);
+        mongoose.connect(process.env.MONGO_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        })
+            .then(() => console.log("MongoDB connected ✅"))
+            .catch((err) => console.log("MongoDB connection error ❌", err));
+
     }
 
     try {
