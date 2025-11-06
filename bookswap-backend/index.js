@@ -19,17 +19,17 @@ const app = express();
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(
-    cors({
-        origin: [process.env.CLIENT_URL],
-        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-        allowedHeaders: ["Content-Type", "Authorization"],
-        credentials: true,
-    })
-);
+app.use(cors());
+// app.use(
+//     cors({
+//         origin: [process.env.CLIENT_URL],
+//         methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+//         allowedHeaders: ["Content-Type", "Authorization"],
+//         credentials: true,
+//     })
+// );
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
-
 
 const PORT = process.env.PORT || 3001;
 
@@ -39,8 +39,8 @@ app.get("/", (req, res) => {
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 
-app.use("/api/auth", authRoutes);
 app.use("/api/books", bookRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/requests", requestRoutes);
 
 connetToDatabase().then(() => console.log("Connected to DB")).catch(err => console.log(err));
